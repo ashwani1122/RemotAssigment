@@ -5,14 +5,16 @@ import withPWAInit from "@ducanh2912/next-pwa";
 const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
-  register: true,
-  skipWaiting: true,
+  // These two must move inside workboxOptions
+  workboxOptions: {
+    skipWaiting: true,
+    clientsClaim: true, // This is usually used alongside skipWaiting
+  },
 });
 
 const nextConfig = {
   reactStrictMode: true,
-  // MOVE THIS OUT OF EXPERIMENTAL
-  // This satisfies the "no turbopack config" error
+  // Ensure turbopack is empty to avoid conflicts with the PWA webpack worker
   turbopack: {}, 
 };
 
