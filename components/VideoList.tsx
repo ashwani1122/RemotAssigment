@@ -2,10 +2,17 @@
 
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, VideoRecord } from '@/lib/db';
-import { AlertCircle, CheckCircle, RefreshCw, Trash2, CloudUpload } from 'lucide-react'; // Changed to CloudUpload
+import { AlertCircle, CheckCircle, RefreshCw, Trash2, CloudUpload, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function VideoList({ onUpload, uploadingId }: { onUpload: any, uploadingId: number | null }) {
+// 1. Explicitly define the props to fix the TypeScript deployment error
+interface VideoListProps {
+  onUpload: (id: number, blob: Blob) => Promise<void>;
+  uploadingId: number | null;
+  onSelectVideo: (url: string) => void;
+}
+
+export function VideoList({ onUpload, uploadingId, onSelectVideo }: VideoListProps) {
   const videos = useLiveQuery(() => db.videos.orderBy('timestamp').reverse().toArray());
 
   if (!videos?.length) return null;
@@ -17,7 +24,7 @@ export function VideoList({ onUpload, uploadingId }: { onUpload: any, uploadingI
       </h3>
       
       <AnimatePresence>
-        {videos.map((video: any) => (
+        {videos.map((video: VideoRecord) => (
           <motion.div 
             key={video.id}
             initial={{ opacity: 0, x: -20 }}
@@ -25,8 +32,15 @@ export function VideoList({ onUpload, uploadingId }: { onUpload: any, uploadingI
             exit={{ opacity: 0, scale: 0.95 }}
             className="bg-slate-900/50 border border-slate-800 p-4 rounded-2xl flex items-center space-x-4 backdrop-blur-sm"
           >
-            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-black shrink-0">
-              <video src={video.previewUrl} className="w-full h-full object-cover" />
+            {/* 2. Interactive Thumbnail: Clicking this triggers the Playback Overlay */}
+            <div 
+              onClick={() => onSelectVideo(video.previewUrl)}
+              className="relative w-16 h-16 rounded-lg overflow-hidden bg-black shrink-0 cursor-pointer group active:scale-95 transition-transform"
+            >
+              <video src={video.previewUrl} className="w-full h-full object-cover opacity-60" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Play size={16} className="text-white group-hover:scale-125 transition-transform" />
+              </div>
             </div>
             
             <div className="flex-1 min-w-0">
@@ -39,7 +53,10 @@ export function VideoList({ onUpload, uploadingId }: { onUpload: any, uploadingI
             <div className="flex items-center space-x-2">
               {video.status !== 'synced' && (
                 <button 
-                  onClick={() => onUpload(video.id, video.blob)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents opening the video player when clicking upload
+                    onUpload(video.id!, video.blob);
+                  }}
                   disabled={uploadingId === video.id}
                   className="p-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-xl transition-all active:scale-90 disabled:opacity-50"
                 >
@@ -52,7 +69,10 @@ export function VideoList({ onUpload, uploadingId }: { onUpload: any, uploadingI
               )}
               
               <button 
-                onClick={() => db.videos.delete(video.id!)} 
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevents opening the video player when clicking delete
+                  db.videos.delete(video.id!);
+                }} 
                 className="p-2 text-slate-600 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-colors"
               >
                 <Trash2 size={20} />
