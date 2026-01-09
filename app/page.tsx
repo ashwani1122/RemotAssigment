@@ -1,6 +1,6 @@
 'use client';
 
-import { InstallPrompt } from "@/components/InstallPrompt";
+// import { InstallPrompt } from "@/components/InstallPrompt";
 import VideoRecorder from "@/components/Recorder";
 
 export default function Home() {
@@ -10,7 +10,7 @@ export default function Home() {
       <VideoRecorder />
 
       {/* 2. The Floating Install Prompt */}
-      <InstallPrompt />
+      {/* <InstallPrompt /> */}
     </main>
   );
 }
