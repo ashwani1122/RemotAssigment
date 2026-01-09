@@ -1,3 +1,4 @@
+/** @type {import('next').NextConfig} */
 // @ts-ignore
 import withPWAInit from "@ducanh2912/next-pwa";
 
@@ -8,15 +9,11 @@ const withPWA = withPWAInit({
   skipWaiting: true,
 });
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Add this block to fix the Turbopack vs Webpack error
-  experimental: {
-    turbo: {
-      // This tells Next.js to allow the PWA plugin to use Webpack
-    },
-  },
+  // MOVE THIS OUT OF EXPERIMENTAL
+  // This satisfies the "no turbopack config" error
+  turbopack: {}, 
 };
 
 export default withPWA(nextConfig);
